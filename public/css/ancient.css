@@ -1,0 +1,521 @@
+/* ================================
+   颜色体系
+   ================================ */
+:root {
+  --color-parchment: #F5F0E8;
+  --color-ink: #2C2420;
+  --color-cinnabar: #C23B22;
+  --color-sepia: #8B6914;
+  --color-bamboo: #7A8B6F;
+  --color-rice-paper: #FAF6EE;
+  --gradient-parchment: linear-gradient(135deg, #F5F0E8 0%, #EDE5D5 100%);
+  --gradient-ink: linear-gradient(180deg, rgba(44,36,32,0.05) 0%, transparent 100%);
+}
+
+/* ================================
+   全局
+   ================================ */
+body {
+  font-family: 'Noto Serif SC', serif;
+  background-color: var(--color-parchment);
+  background-image: var(--gradient-parchment);
+  color: var(--color-ink);
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+}
+
+/* ================================
+   屏幕切换
+   ================================ */
+.screen {
+  display: none;
+  min-height: 100vh;
+}
+
+.screen.active {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ================================
+   欢迎界面
+   ================================ */
+.ancient-title {
+  font-family: 'Ma Shan Zheng', cursive;
+  font-size: 3rem;
+  color: var(--color-ink);
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+
+.ancient-subtitle {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 1.25rem;
+  color: var(--color-sepia);
+  letter-spacing: 0.2em;
+}
+
+.ancient-divider {
+  width: 200px;
+  height: 2px;
+  background: var(--color-sepia);
+  opacity: 0.4;
+  border: none;
+}
+
+.instructions-text {
+  font-size: 1.05rem;
+  line-height: 2;
+  color: var(--color-ink);
+  opacity: 0.8;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* ================================
+   游戏界面
+   ================================ */
+.game-header {
+  text-align: center;
+  padding: 16px 16px 8px;
+  background: var(--gradient-parchment);
+  border-bottom: 1px solid rgba(139, 105, 20, 0.15);
+}
+
+.round-indicator {
+  margin-bottom: 8px;
+}
+
+.round-count {
+  font-size: 0.95rem;
+  color: var(--color-sepia);
+}
+
+/* 竹简式轮次指示器 */
+.round-dot {
+  width: 18px;
+  height: 28px;
+  background: var(--color-bamboo);
+  border-radius: 3px;
+  opacity: 0.3;
+  transition: opacity 0.3s, background-color 0.3s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  flex-shrink: 0;
+}
+
+.round-dot.used {
+  opacity: 1;
+  background: var(--color-cinnabar);
+}
+
+.round-dot.current {
+  opacity: 1;
+  background: var(--color-sepia);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.15); }
+}
+
+/* 聊天区域 */
+.chat-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chat-bubble {
+  max-width: 75%;
+  padding: 10px 14px;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  animation: fadeInUp 0.3s ease;
+  word-break: break-word;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 用户消息（右侧，墨迹风） */
+.chat-bubble.user {
+  align-self: flex-end;
+  background: var(--color-ink);
+  color: var(--color-rice-paper);
+  border-radius: 2px 16px 16px 2px;
+  box-shadow: 2px 2px 8px rgba(0,0,0,0.15);
+}
+
+/* AI 消息（左侧，卷轴风） */
+.chat-bubble.ai {
+  align-self: flex-start;
+  background: var(--color-rice-paper);
+  border: 1px solid rgba(139, 105, 20, 0.2);
+  border-radius: 16px 2px 2px 16px;
+  box-shadow: 1px 1px 6px rgba(0,0,0,0.08);
+}
+
+.answer-tag {
+  display: inline-block;
+  padding: 2px 12px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin-bottom: 6px;
+}
+
+.answer-tag.yes { background: var(--color-cinnabar); color: white; }
+.answer-tag.no { background: var(--color-sepia); color: white; }
+.answer-tag.maybe { background: var(--color-bamboo); color: white; }
+
+/* 输入区域 */
+.input-area {
+  padding: 12px 16px;
+  background: var(--gradient-parchment);
+  border-top: 1px solid rgba(139, 105, 20, 0.15);
+}
+
+.input-hint {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--color-sepia);
+  opacity: 0.7;
+  margin-top: 6px;
+}
+
+.char-counter {
+  font-size: 0.8rem;
+  color: var(--color-sepia);
+  opacity: 0.6;
+  min-width: 40px;
+  text-align: right;
+}
+
+.ancient-input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 2px solid rgba(139, 105, 20, 0.3);
+  border-radius: 4px;
+  background: var(--color-rice-paper);
+  font-family: 'Noto Serif SC', serif;
+  font-size: 1rem;
+  color: var(--color-ink);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.ancient-input:focus {
+  border-color: var(--color-cinnabar);
+}
+
+.ancient-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ================================
+   按钮
+   ================================ */
+.ancient-btn-primary {
+  background: var(--color-cinnabar);
+  color: white;
+  padding: 12px 32px;
+  border: none;
+  border-radius: 4px;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(194, 59, 34, 0.3);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ancient-btn-primary:hover:not(:disabled) {
+  background: #a83119;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(194, 59, 34, 0.4);
+}
+
+.ancient-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.ancient-btn-secondary {
+  background: transparent;
+  color: var(--color-cinnabar);
+  border: 2px solid var(--color-cinnabar);
+  padding: 8px 20px;
+  border-radius: 4px;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ancient-btn-secondary:hover {
+  background: var(--color-cinnabar);
+  color: white;
+}
+
+.btn-icon {
+  font-size: 1.2rem;
+}
+
+/* ================================
+   加载状态
+   ================================ */
+.loading-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  color: var(--color-sepia);
+  font-size: 0.9rem;
+}
+
+.loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--color-sepia);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ================================
+   结果页
+   ================================ */
+.result-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 16px;
+}
+
+.result-text {
+  font-size: 1.1rem;
+  color: var(--color-sepia);
+  text-align: center;
+}
+
+/* 人物卡片 */
+.figure-card {
+  background: var(--color-rice-paper);
+  border: 2px solid var(--color-sepia);
+  border-radius: 8px;
+  padding: 24px;
+  max-width: 640px;
+  width: 100%;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+/* 画像区域 */
+.portrait-section {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.figure-portrait {
+  width: 180px;
+  height: 240px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 3px solid var(--color-sepia);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+.portrait-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 32px;
+  color: var(--color-sepia);
+  opacity: 0.7;
+}
+
+.placeholder-icon {
+  font-size: 3rem;
+}
+
+/* 人物基本信息 */
+.figure-name {
+  font-family: 'Ma Shan Zheng', cursive;
+  font-size: 2.5rem;
+  color: var(--color-ink);
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.figure-dynasty-row {
+  text-align: center;
+  color: var(--color-sepia);
+  font-size: 1.1rem;
+  margin-bottom: 16px;
+}
+
+.separator {
+  margin: 0 8px;
+  opacity: 0.5;
+}
+
+.figure-summary {
+  text-align: center;
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: var(--color-ink);
+  opacity: 0.85;
+  margin-bottom: 24px;
+  padding: 12px;
+  background: rgba(139, 105, 20, 0.05);
+  border-radius: 4px;
+  border-left: 3px solid var(--color-sepia);
+}
+
+/* 分区标题 */
+.section-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 1.2rem;
+  color: var(--color-cinnabar);
+  margin-bottom: 12px;
+  padding-bottom: 4px;
+  border-bottom: 1px dashed var(--color-sepia);
+}
+
+/* 主要成就列表 */
+.achievements-section {
+  margin-bottom: 24px;
+}
+
+.achievement-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.achievement-list li {
+  position: relative;
+  padding: 8px 0 8px 24px;
+  line-height: 1.6;
+  color: var(--color-ink);
+}
+
+.achievement-list li::before {
+  content: '✦';
+  position: absolute;
+  left: 0;
+  color: var(--color-sepia);
+  font-size: 0.9rem;
+}
+
+/* 详细生平 */
+.biography-section {
+  margin-bottom: 24px;
+}
+
+.biography-text {
+  font-size: 1rem;
+  line-height: 2;
+  color: var(--color-ink);
+  text-align: justify;
+  text-indent: 2em;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 12px;
+  background: rgba(245, 240, 232, 0.5);
+  border-radius: 4px;
+}
+
+.biography-text::-webkit-scrollbar {
+  width: 6px;
+}
+
+.biography-text::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.biography-text::-webkit-scrollbar-thumb {
+  background: var(--color-sepia);
+  border-radius: 3px;
+}
+
+/* 趣味冷知识 */
+.funfact-section {
+  margin-bottom: 8px;
+}
+
+.funfact-text {
+  font-size: 1rem;
+  line-height: 1.8;
+  color: var(--color-bamboo);
+  background: rgba(122, 139, 111, 0.08);
+  padding: 12px 16px;
+  border-radius: 4px;
+  border-left: 3px solid var(--color-bamboo);
+}
+
+/* ================================
+   响应式
+   ================================ */
+@media (max-width: 640px) {
+  .ancient-title {
+    font-size: 2.2rem;
+  }
+
+  .ancient-subtitle {
+    font-size: 1rem;
+  }
+
+  .chat-bubble {
+    max-width: 85%;
+  }
+
+  .figure-card {
+    padding: 16px;
+  }
+
+  .figure-portrait {
+    width: 140px;
+    height: 186px;
+  }
+
+  .figure-name {
+    font-size: 2rem;
+  }
+
+  .biography-text {
+    max-height: 200px;
+    font-size: 0.95rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .ancient-title {
+    font-size: 3.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .game-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+  }
+}

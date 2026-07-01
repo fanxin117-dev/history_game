@@ -1,0 +1,22 @@
+{
+  "name": "history-guess-game",
+  "version": "1.0.0",
+  "description": "历史人物猜谜游戏 — 20 Questions 风格的 AI 驱动猜谜游戏",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "test": "jest"
+  },
+  "dependencies": {
+    "openai": "^4.79.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^7.0.0"
+  }
+}

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>历史人物猜谜游戏</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+  <!-- 自定义古风样式 -->
+  <link rel="stylesheet" href="/css/ancient.css">
+</head>
+<body class="ancient-bg">
+  <!-- ========== 欢迎界面 ========== -->
+  <div id="welcome-screen" class="screen active">
+    <header class="text-center py-12 px-4">
+      <h1 class="ancient-title">历史人物猜谜游戏</h1>
+      <p class="ancient-subtitle">二十问知古今 · 猜人物辨忠奸</p>
+      <div class="ancient-divider mx-auto my-8"></div>
+      <p class="instructions-text">
+        我将想好一位历史人物，你最多可以问 20 个问题。<br>
+        每个问题我会回答"是"、"不是"或"不确定"。<br>
+        你也可以随时猜测人物姓名。
+      </p>
+    </header>
+    <div class="text-center">
+      <button id="btn-start" class="ancient-btn-primary">
+        <span class="btn-icon">📜</span> 开始游戏
+      </button>
+    </div>
+  </div>
+
+  <!-- ========== 游戏界面 ========== -->
+  <div id="game-screen" class="screen hidden">
+    <!-- 顶部信息栏 -->
+    <div class="game-header">
+      <div class="round-indicator">
+        <div id="round-dots" class="flex gap-1 flex-wrap justify-center"></div>
+      </div>
+      <div class="round-count">
+        第 <span id="current-round">0</span> / 20 轮
+      </div>
+      <button id="btn-reveal" class="ancient-btn-secondary hidden">
+        揭晓答案
+      </button>
+    </div>
+
+    <!-- 消息区域 -->
+    <div id="chat-area" class="chat-container"></div>
+
+    <!-- 输入区域 -->
+    <div class="input-area">
+      <form id="question-form" class="flex gap-2">
+        <input
+          id="question-input"
+          type="text"
+          placeholder="请输入你的问题..."
+          maxlength="200"
+          class="ancient-input"
+          autocomplete="off"
+        />
+        <span id="char-count" class="char-counter">0/200</span>
+        <button type="submit" id="btn-submit" class="ancient-btn-primary" disabled>
+          提问
+        </button>
+      </form>
+      <div class="input-hint">
+        💡 提示：你可以问"他是男性吗？"或猜"我猜是诸葛亮"
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 结果界面 ========== -->
+  <div id="result-screen" class="screen hidden">
+    <div class="result-container">
+      <h2 id="result-title" class="ancient-title mb-4"></h2>
+      <p id="result-message" class="result-text mb-8"></p>
+
+      <div id="result-figure" class="figure-card">
+        <!-- 画像区域 -->
+        <div class="portrait-section">
+          <img id="figure-portrait" class="figure-portrait hidden" alt="历史人物画像" />
+          <div id="portrait-placeholder" class="portrait-placeholder">
+            <span class="placeholder-icon">🖼️</span>
+            <span class="placeholder-text">暂无历史画像</span>
+          </div>
+        </div>
+
+        <!-- 基本信息 -->
+        <div class="figure-meta">
+          <h3 id="figure-name" class="figure-name"></h3>
+          <div class="figure-dynasty-row">
+            <span id="figure-dynasty" class="figure-dynasty"></span>
+            <span class="separator">·</span>
+            <span id="figure-lived" class="figure-lived"></span>
+          </div>
+        </div>
+
+        <!-- 一句话简介 -->
+        <p id="figure-summary" class="figure-summary"></p>
+
+        <!-- 主要成就 -->
+        <div class="achievements-section">
+          <h4 class="section-title">📜 主要成就</h4>
+          <ul id="figure-achievements" class="achievement-list"></ul>
+        </div>
+
+        <!-- 详细生平 -->
+        <div class="biography-section">
+          <h4 class="section-title">📖 生平简介</h4>
+          <div id="figure-biography" class="biography-text"></div>
+        </div>
+
+        <!-- 趣味冷知识 -->
+        <div class="funfact-section">
+          <h4 class="section-title">💡 趣味冷知识</h4>
+          <p id="figure-funfact" class="funfact-text"></p>
+        </div>
+      </div>
+
+      <div class="mt-10 flex justify-center">
+        <button id="btn-play-again" class="ancient-btn-primary">
+          <span class="btn-icon">🔄</span> 再来一局
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/js/game.js"></script>
+</body>
+</html>
