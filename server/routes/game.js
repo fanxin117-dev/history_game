@@ -105,7 +105,7 @@ function gameRoutes(sessionManager) {
       });
 
       // 调用 AI 判断（传入包含最新问题的完整历史）
-      const judgment = await aiService.judgeQuestion(session.secretFigure, session.messages);
+      const judgment = await aiService.judgeQuestion(session.secretFigure, session.messages, sessionId);
 
       // 更新回合
       sessionManager.advanceRound(sessionId);

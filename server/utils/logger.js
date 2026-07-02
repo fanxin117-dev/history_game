@@ -74,4 +74,30 @@ function aiErrorLog(sessionId, error, question) {
   });
 }
 
-module.exports = { gameLog, aiCallLog, aiErrorLog };
+/**
+ * 记录发送给 AI 的完整请求（含 system prompt 和 messages）
+ */
+function aiRequestLog(sessionId, systemPrompt, messages) {
+  writeLog('DEBUG', `GAME[${sessionId}]AI_REQUEST`, {
+    systemPromptLength: systemPrompt?.length || 0,
+    messagesCount: messages?.length || 0,
+    // 脱敏：只保留每条消息的 role 和 content 前 200 字符
+    messages: (messages || []).map(m => ({
+      role: m.role,
+      contentPreview: (m.content || '').substring(0, 200),
+    })),
+  });
+}
+
+/**
+ * 记录 AI 返回的原始响应文本（用于调试 JSON 解析失败）
+ */
+function aiResponseLog(sessionId, rawContent, parsedSuccessfully) {
+  writeLog('DEBUG', `GAME[${sessionId}]AI_RESPONSE`, {
+    rawContentLength: rawContent?.length || 0,
+    rawContentPreview: (rawContent || '').substring(0, 500),
+    parsed: parsedSuccessfully,
+  });
+}
+
+module.exports = { gameLog, aiCallLog, aiErrorLog, aiRequestLog, aiResponseLog };

@@ -2,18 +2,57 @@ const { aiClient, API_CONFIG } = require('../config/claude');
 const SELECT_FIGURE_PROMPT = require('../prompts/select-figure');
 const JUDGE_QUESTION_PROMPT = require('../prompts/judge-question');
 const REVEAL_SYSTEM_PROMPT = require('../prompts/reveal');
+const { aiRequestLog, aiResponseLog } = require('../utils/logger');
 
 /**
  * 从 AI 返回的文本中提取 JSON
  * 处理 AI 可能返回 Markdown 代码块包裹的 JSON 的情况
+ * 如果 AI 没有返回 JSON（比如直接返回了"是"/"不是"），尝试提取并包装成标准格式
  */
-function parseJSON(text) {
+function parseJSON(text, sessionId = null) {
   if (!text) throw new Error('AI 返回了空内容');
   const trimmed = text.trim();
+
+  // 先尝试直接解析
+  try {
+    return JSON.parse(trimmed);
+  } catch (e) {
+    // 忽略 — 继续尝试其他提取方式
+  }
+
   // 去除 Markdown 代码块包裹
   const jsonMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/);
-  const jsonText = jsonMatch ? jsonMatch[1].trim() : trimmed;
-  return JSON.parse(jsonText);
+  if (jsonMatch) {
+    try {
+      return JSON.parse(jsonMatch[1].trim());
+    } catch (e) {
+      // 继续尝试 fallback
+    }
+  }
+
+  // Fallback: 如果 AI 直接返回了简短的中文回答，尝试从中提取答案
+  // 这种情况通常发生在 AI "忘记"了 JSON 格式要求
+  const shortAnswers = ['是', '不是', '不确定', '是的', '不是的'];
+  for (const ans of shortAnswers) {
+    if (trimmed === ans || trimmed.startsWith(ans + '。') || trimmed.startsWith(ans + '.')) {
+      if (sessionId) {
+        aiResponseLog(sessionId, text, false);
+      }
+      const cleanAnswer = ans === '是的' ? '是' : ans === '不是的' ? '不是' : ans;
+      const reasonPart = trimmed.replace(ans, '').replace(/^。+|。+$/g, '');
+      return {
+        answer: cleanAnswer,
+        reason: reasonPart ? reasonPart : `${cleanAnswer}（AI 未提供理由）`,
+        isGuess: false,
+        figureGuessed: '',
+        correctGuess: false,
+        gameStatus: 'playing',
+      };
+    }
+  }
+
+  // 全部失败，抛出原始错误
+  throw new Error(`AI 返回了非 JSON 内容: ${trimmed.substring(0, 100)}`);
 }
 
 /**
@@ -76,7 +115,7 @@ class AIService {
   /**
    * 判断问题
    */
-  async judgeQuestion(secretFigure, messageHistory) {
+  async judgeQuestion(secretFigure, messageHistory, sessionId = null) {
     return withTimeoutAndRetry(async ({ signal }) => {
       const systemPrompt = JUDGE_QUESTION_PROMPT.replace(
         '{secret_figure_json}',
@@ -97,6 +136,11 @@ class AIService {
             { role: 'user', content: '请问：他是男性吗？' },
           ];
 
+      // 记录发送给 AI 的完整请求（脱敏，只保留 content 前 200 字符）
+      if (sessionId) {
+        aiRequestLog(sessionId, systemPrompt, finalMessages);
+      }
+
       const response = await aiClient.chat.completions.create({
         model: API_CONFIG.MODEL,
         temperature: API_CONFIG.JUDGE_TEMPERATURE,
@@ -106,7 +150,19 @@ class AIService {
 
       const text = response.choices[0]?.message?.content;
       if (!text) throw new Error('AI 返回了空内容');
-      return parseJSON(text);
+
+      // 记录 AI 原始响应
+      if (sessionId) {
+        try {
+          parseJSON(text, sessionId);
+          aiResponseLog(sessionId, text, true);
+        } catch (e) {
+          aiResponseLog(sessionId, text, false);
+          throw e;
+        }
+      }
+
+      return parseJSON(text, sessionId);
     });
   }
 
