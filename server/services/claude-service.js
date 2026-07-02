@@ -31,18 +31,36 @@ function parseJSON(text, sessionId = null) {
   }
 
   // Fallback: 如果 AI 直接返回了简短的中文回答，尝试从中提取答案
-  // 这种情况通常发生在 AI "忘记"了 JSON 格式要求
-  const shortAnswers = ['是', '不是', '不确定', '是的', '不是的'];
+  // 注意：必须从长到短匹配！"不是" 必须在 "是" 之前，否则 "不是" 会被误匹配为 "是"
+  const shortAnswers = ['不是', '不确定', '是的', '不是的', '是'];
   for (const ans of shortAnswers) {
-    if (trimmed === ans || trimmed.startsWith(ans + '。') || trimmed.startsWith(ans + '.')) {
+    if (trimmed === ans || trimmed.startsWith(ans + '。') || trimmed.startsWith(ans + '.') ||
+        trimmed.startsWith(ans + '，')) {
       if (sessionId) {
         aiResponseLog(sessionId, text, false);
       }
       const cleanAnswer = ans === '是的' ? '是' : ans === '不是的' ? '不是' : ans;
-      const reasonPart = trimmed.replace(ans, '').replace(/^。+|。+$/g, '');
+      const reasonPart = trimmed.replace(ans, '').replace(/^。+|。+$/g, '').trim();
       return {
         answer: cleanAnswer,
         reason: reasonPart ? reasonPart : `${cleanAnswer}（AI 未提供理由）`,
+        isGuess: false,
+        figureGuessed: '',
+        correctGuess: false,
+        gameStatus: 'playing',
+      };
+    }
+  }
+
+  // 终极 fallback: 如果 AI 返回了长文本，尝试从中提取关键词
+  // 这表明 AI 可能在"说话"而不是返回 JSON
+  if (trimmed.length > 20) {
+    // 检查是否包含"拒绝"相关关键词
+    if (trimmed.includes('无法') || trimmed.includes('不能') || trimmed.includes('不是') ||
+        trimmed.includes('不合适') || trimmed.includes('问题') || trimmed.includes('请')) {
+      return {
+        answer: '拒绝',
+        reason: '这个问题不适合用是/否回答',
         isGuess: false,
         figureGuessed: '',
         correctGuess: false,
@@ -114,6 +132,9 @@ class AIService {
 
   /**
    * 判断问题
+   * 注意：只传当前问题 + 人物信息，不传历史对话。
+   * 历史对话会干扰 AI 判断，且浪费 token。
+   * AI 只需要基于规则和人物信息对当前问题进行独立判断。
    */
   async judgeQuestion(secretFigure, messageHistory, sessionId = null) {
     return withTimeoutAndRetry(async ({ signal }) => {
@@ -122,19 +143,25 @@ class AIService {
         JSON.stringify(secretFigure, null, 2)
       );
 
-      const messages = messageHistory.slice(-API_CONFIG.MAX_MESSAGES).map(msg => ({
-        role: msg.role,
-        content: msg.content,
-      }));
+      // 从 messageHistory 中取最后一条用户消息（即当前问题）
+      // messageHistory 格式: [..., {role: 'user', content: '当前问题'}, {role: 'assistant', content: '上一轮回复'}]
+      let currentQuestion = '';
+      for (let i = messageHistory.length - 1; i >= 0; i--) {
+        if (messageHistory[i].role === 'user') {
+          currentQuestion = messageHistory[i].content;
+          break;
+        }
+      }
 
-      // 如果消息历史为空（第一轮），添加一个占位用户消息
-      // 因为 Agnes API 要求 messages 中至少有一个 user 角色
-      const finalMessages = messages.length > 0
-        ? [{ role: 'system', content: systemPrompt }, ...messages]
-        : [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: '请问：他是男性吗？' },
-          ];
+      // 如果找不到用户消息（极端情况），使用占位
+      if (!currentQuestion) {
+        currentQuestion = '请问：他是男性吗？';
+      }
+
+      const finalMessages = [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: currentQuestion },
+      ];
 
       // 记录发送给 AI 的完整请求（脱敏，只保留 content 前 200 字符）
       if (sessionId) {
@@ -162,7 +189,28 @@ class AIService {
         }
       }
 
-      return parseJSON(text, sessionId);
+      const judgment = parseJSON(text, sessionId);
+
+      //  Sanity check: 如果 reason 和 answer 矛盾，以 reason 为准
+      // 因为 AI（尤其是免费模型）经常在长推理中写出正确答案，但在 answer 字段填反
+      if (judgment.answer && judgment.reason) {
+        const reason = judgment.reason.toLowerCase();
+        const answer = judgment.answer;
+
+        // 检测 reason 中的关键否定词
+        const saysNo = reason.includes('不是') || reason.includes('应为"不是"') || reason.includes('应为\'不是\'') || reason.includes('答案应为"不是"') || reason.includes('答案应为\'不是\'') || reason.includes('答案应该是"不是"') || reason.includes('答案应该是\'不是\'');
+        const saysYes = reason.includes('答案是"是"') || reason.includes('答案是\'是\'') || reason.includes('答案应为"是"') || reason.includes('答案应为\'是\'') || reason.includes('答案应该是"是"') || reason.includes('答案应该是\'是\'');
+
+        if (saysNo && answer === '是') {
+          console.log(`[SANITY_CHECK] reason说"不是"但answer是"是"，修正为"不是": ${judgment.reason.substring(0, 80)}...`);
+          judgment.answer = '不是';
+        } else if (saysYes && answer === '不是') {
+          console.log(`[SANITY_CHECK] reason说"是"但answer是"不是"，修正为"是": ${judgment.reason.substring(0, 80)}...`);
+          judgment.answer = '是';
+        }
+      }
+
+      return judgment;
     });
   }
 

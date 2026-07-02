@@ -21,10 +21,10 @@ app.use(cors());
 app.use(express.json({ limit: '1mb' }));
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
-// IP 级别速率限制：10 请求/分钟
+// IP 级别速率限制：100 请求/分钟（测试友好）
 const apiLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 10,
+  max: 100,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
