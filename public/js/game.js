@@ -201,7 +201,7 @@ async function submitQuestion(text) {
       btnSubmit.disabled = true;
       questionInput.disabled = true;
       setTimeout(() => showResultFromQuestion(true), 1000);
-    } else if (status === 'lost') {
+    } else if (status === 'lost' || remainingRounds <= 0) {
       gameState.gameStatus = 'ended';
       btnReveal.classList.add('hidden');
       btnSubmit.disabled = true;

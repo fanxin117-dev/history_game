@@ -117,6 +117,7 @@ function gameRoutes(sessionManager) {
         sessionManager.endGame(sessionId, 'lost');
       }
 
+<<<<<<< HEAD
       // 如果是开放式/非是非题，AI 会返回 "拒绝" — 不消耗轮次，不追加消息
       if (judgment.answer === '拒绝') {
         sessionManager.undoAppend(sessionId);
@@ -142,14 +143,25 @@ function gameRoutes(sessionManager) {
 
       // 服务器端强制检查20轮限制（不依赖AI判断）
       if (session.currentRound >= 20 && !judgment.correctGuess) {
+=======
+      // 20轮用完，强制判定为输
+      if (session.currentRound >= 20 && gameStatus !== 'won') {
+>>>>>>> 315907008063675fae6faf42b841b46fbdb68969
         gameStatus = 'lost';
         sessionManager.endGame(sessionId, 'lost');
       }
 
       // 构造 AI 回复 — 只显示简短回答，不暴露推理过程
-      const aiReply = judgment.answer === '是' ? '是。'
-        : judgment.answer === '不是' ? '不是。'
-        : '不确定。';
+      let aiReply;
+      if (judgment.answer === '是') {
+        aiReply = '是。';
+      } else if (judgment.answer === '不是') {
+        aiReply = '不是。';
+      } else if (judgment.answer === '拒绝') {
+        aiReply = judgment.reason || '这个问题不适合用是/否回答，请重新提问。';
+      } else {
+        aiReply = '不确定。';
+      }
 
       // 记录到消息历史（内部存储完整回复用于回放）
       sessionManager.appendMessage(sessionId, {
