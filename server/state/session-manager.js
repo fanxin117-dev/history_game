@@ -73,6 +73,15 @@ class SessionManager {
   }
 
   /**
+   * 撤回最后一条消息（用于拒绝类问题不消耗轮次的场景）
+   */
+  undoAppend(sessionId) {
+    const session = this.sessions.get(sessionId);
+    if (!session || session.messages.length === 0) return;
+    session.messages.pop();
+  }
+
+  /**
    * 增加回合数，返回新的回合数
    */
   advanceRound(sessionId) {

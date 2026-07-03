@@ -107,17 +107,41 @@ function gameRoutes(sessionManager) {
       // 调用 AI 判断（传入包含最新问题的完整历史）
       const judgment = await aiService.judgeQuestion(session.secretFigure, session.messages, sessionId);
 
-      // 更新回合
-      sessionManager.advanceRound(sessionId);
-      session.lastQuestionAt = new Date();
-      sessionManager.touch(sessionId);
-
       // 处理判决结果
       let gameStatus = 'playing';
       if (judgment.correctGuess) {
         gameStatus = 'won';
         sessionManager.endGame(sessionId, 'won');
       } else if (judgment.gameStatus === 'lost') {
+        gameStatus = 'lost';
+        sessionManager.endGame(sessionId, 'lost');
+      }
+
+      // 如果是开放式/非是非题，AI 会返回 "拒绝" — 不消耗轮次，不追加消息
+      if (judgment.answer === '拒绝') {
+        sessionManager.undoAppend(sessionId);
+        gameLog(sessionId, 'REFUSED', { question: trimmed, reason: judgment.reason });
+        res.json({
+          success: true,
+          data: {
+            answer: '拒绝',
+            round: session.currentRound,
+            remainingRounds: 20 - session.currentRound,
+            status: gameStatus,
+            figureGuessed: judgment.isGuess || false,
+            refusedReason: judgment.reason,
+          },
+        });
+        return;
+      }
+
+      // 更新回合（仅对非拒绝类问题）
+      sessionManager.advanceRound(sessionId);
+      session.lastQuestionAt = new Date();
+      sessionManager.touch(sessionId);
+
+      // 服务器端强制检查20轮限制（不依赖AI判断）
+      if (session.currentRound >= 20 && !judgment.correctGuess) {
         gameStatus = 'lost';
         sessionManager.endGame(sessionId, 'lost');
       }

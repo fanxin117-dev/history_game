@@ -287,8 +287,17 @@ function showResult(resultData) {
     achList.appendChild(li);
   });
 
-  // 详细生平
-  document.getElementById('figure-biography').textContent = figure.biography || '';
+  // 详细生平（保留换行符渲染为段落）
+  const bioEl = document.getElementById('figure-biography');
+  if (figure.biography) {
+    // 将 \n\n 分割为段落，\n 转换为 <br>
+    bioEl.innerHTML = figure.biography
+      .split(/\n\n/)
+      .map(p => '<p>' + p.replace(/\n/g, '<br>') + '</p>')
+      .join('');
+  } else {
+    bioEl.textContent = '';
+  }
 
   // 趣味冷知识
   document.getElementById('figure-funfact').textContent = figure.funFact || '';
