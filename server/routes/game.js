@@ -117,7 +117,6 @@ function gameRoutes(sessionManager) {
         sessionManager.endGame(sessionId, 'lost');
       }
 
-<<<<<<< HEAD
       // 如果是开放式/非是非题，AI 会返回 "拒绝" — 不消耗轮次，不追加消息
       if (judgment.answer === '拒绝') {
         sessionManager.undoAppend(sessionId);
@@ -141,12 +140,8 @@ function gameRoutes(sessionManager) {
       session.lastQuestionAt = new Date();
       sessionManager.touch(sessionId);
 
-      // 服务器端强制检查20轮限制（不依赖AI判断）
-      if (session.currentRound >= 20 && !judgment.correctGuess) {
-=======
       // 20轮用完，强制判定为输
       if (session.currentRound >= 20 && gameStatus !== 'won') {
->>>>>>> 315907008063675fae6faf42b841b46fbdb68969
         gameStatus = 'lost';
         sessionManager.endGame(sessionId, 'lost');
       }
